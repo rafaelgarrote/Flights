@@ -54,29 +54,29 @@ object Flight{
   *
   */
   def apply(fields: Array[String]): Flight = {
-    val year = ParserUtils.getDateTime(Integer.parseInt(fields.apply(0)), Integer.parseInt(fields.apply(1)), Integer.parseInt(fields.apply(2)))
+    val year = ParserUtils.getDateTime(fields(0).toInt, fields(1).toInt, fields(2).toInt)
     new Flight(year,
-      Integer.parseInt(fields.apply(3)),
-      Integer.parseInt(fields.apply(4)),
-      Integer.parseInt(fields.apply(5)),
-      Integer.parseInt(fields.apply(6)),
-      fields.apply(7),
-      Integer.parseInt(fields.apply(8)),
-      Integer.parseInt(fields.apply(9)),
-      Integer.parseInt(fields.apply(10)),
-      Integer.parseInt(fields.apply(11)),
-      Integer.parseInt(fields.apply(12)),
-      fields.apply(13),
-      fields.apply(14),
-      Integer.parseInt(fields.apply(15)),
-      parseCancelled(fields.apply(16)),
-      Integer.parseInt(fields.apply(17)),
+      fields(4).toInt,
+      fields(5).toInt,
+      fields(6).toInt,
+      fields(7).toInt,
+      fields(8),
+      fields(9).toInt,
+      fields(11).toInt,
+      fields(12).toInt,
+      fields(14).toInt,
+      fields(15).toInt,
+      fields(16),
+      fields(17),
+      fields(18).toInt,
+      parseCancelled(fields(21)),
+      fields(22).toInt,
       new Delays(
-        parseCancelled(fields.apply(18)),
-        parseCancelled(fields.apply(19)),
-        parseCancelled(fields.apply(20)),
-        parseCancelled(fields.apply(21)),
-        parseCancelled(fields.apply(22))
+        parseCancelled(fields(24)),
+        parseCancelled(fields(25)),
+        parseCancelled(fields(26)),
+        parseCancelled(fields(27)),
+        parseCancelled(fields(28))
       )
     )
   }
@@ -86,7 +86,21 @@ object Flight{
    * Extract the different types of errors in a string list
    *
    */
-  def extractErrors(fields: Array[String]): Seq[String] = ???
+  def extractErrors(fields: Array[String]): Seq[String] = fields.map(f => parse(f, fields.indexOf(f))).flatten.toSeq
+
+  def parse(l:String, position:Int): Option[String] = {
+    position match {
+      case 19 | 20 | 23 | 8 | 16 | 17 => None
+      case _ => ParserUtils.parseIntError(l)
+    }
+  }
+
+  def range(l:String, position:Int): Option[String] = {
+    position match {
+      case 21|24|25|26|27|28 => if (l != 0 || l != 1)  Some("RangeError") else None
+      case _ => None
+    }
+  }
 
   /*
   *
@@ -95,5 +109,9 @@ object Flight{
   *   if field == 0 -> OnTime
   *   if field <> 0 && field<>1 -> Unknown
   */
-  def parseCancelled(field: String): Cancelled = ???
+  def parseCancelled(field: String): Cancelled = field match {
+    case "1" => Cancel
+    case "0" => OnTime
+    case _ => Unknown
+  }
 }

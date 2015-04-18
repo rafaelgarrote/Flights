@@ -11,14 +11,14 @@ class FlightCsvReader(self: RDD[String]) {
      * Parser the csv file with the format described in te readme.md file to a Fligth class
      *
      */
-    def toFlight: RDD[Flight] = self.map(f => f.split(",")).map(f => Flight.apply(f))
+    def toFlight: RDD[Flight] = self.map(f => Flight.apply(f.split(",")))
 
     /**
      *
      * Obtain the parser errors
      *
      */
-    def toErrors: RDD[(String, String)] = ???
+    def toErrors: RDD[(String, String)] = self.map(f => f.split(",")).map(f => Flight.extractErrors(f))
   }
 
   class FlightFunctions(self: RDD[Flight]) {
