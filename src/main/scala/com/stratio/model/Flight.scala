@@ -86,11 +86,14 @@ object Flight{
    * Extract the different types of errors in a string list
    *
    */
-  def extractErrors(fields: Array[String]): Seq[String] = fields.map(f => parse(f, fields.indexOf(f))).flatten.toSeq
+  def extractErrors(fields: Array[String]): Seq[String] = {
+    println(fields.map(f => getParseErrors(f, fields.indexOf(f))).toList)
+    fields.map(f => getParseErrors(f, fields.indexOf(f))).flatten.toSeq
+  }
 
-  def parse(l:String, position:Int): Option[String] = {
+  def getParseErrors(l:String, position:Int): Option[String] = {
     position match {
-      case 19 | 20 | 23 | 8 | 16 | 17 => None
+      case 8|10|13|16|17|19|20|21|23|24|25|26|27|28 => None
       case _ => ParserUtils.parseIntError(l)
     }
   }

@@ -21,7 +21,7 @@ object ParserUtils {
   def getDateTime(year: Int, month: Int, day: Int): DateTime =
     new DateTime(year, month, day, 0, 0, 0)
 
-  def parseIntError(intToParse: String): Option[String] = intToParse.filter(!_.isDigit).isEmpty match{
+  def parseIntError(intToParse: String): Option[String] = intToParse.filter(!_.isDigit).isEmpty match {
     case true => None
     case _ => Some(NOT_PARSEABLE_INT_ERROR)
   }
