@@ -86,10 +86,10 @@ object Flight{
    * Extract the different types of errors in a string list
    *
    */
-  def extractErrors(fields: Array[String]): Seq[String] = {
-    println(fields.map(f => getParseErrors(f, fields.indexOf(f))).toList)
-    fields.map(f => getParseErrors(f, fields.indexOf(f))).flatten.toSeq
-  }
+  def extractErrors(fields: Array[String]): Seq[String] =
+    (fields.zipWithIndex.map(f => getParseErrors(f._1, f._2))
+      ++ Array(parseDate(fields(0), fields(1), fields(2)))).flatten.toSeq
+
 
   def getParseErrors(l:String, position:Int): Option[String] = {
     position match {
@@ -98,12 +98,7 @@ object Flight{
     }
   }
 
-  def range(l:String, position:Int): Option[String] = {
-    position match {
-      case 21|24|25|26|27|28 => if (l != 0 || l != 1)  Some("RangeError") else None
-      case _ => None
-    }
-  }
+  def parseDate(year: String, month: String, day: String): Option[String] = ParserUtils.parseDate(s"$year-$month-$day")
 
   /*
   *

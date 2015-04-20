@@ -30,6 +30,8 @@ class FlightCsvReader(self: RDD[String]) {
      *
      */
     def minFuelConsumptionByMonthAndAirport(fuelPrice: RDD[String]): RDD[(String, Short)] = ???
+      //self.map(f => (s"${f.date.year()}-${f.date.monthOfYear()}", f.actualElapsedTime))
+
 
     /**
      *
