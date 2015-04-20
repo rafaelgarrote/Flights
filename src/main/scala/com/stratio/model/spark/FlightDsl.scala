@@ -29,8 +29,20 @@ class FlightCsvReader(self: RDD[String]) {
      * Obtain the minimum fuel's consumption using a external RDD with the fuel price by Year, Month
      *
      */
-    def minFuelConsumptionByMonthAndAirport(fuelPrice: RDD[String]): RDD[(String, Short)] = ???
-      //self.map(f => (s"${f.date.year()}-${f.date.monthOfYear()}", f.actualElapsedTime))
+    def minFuelConsumptionByMonthAndAirport(fuelPrice: RDD[String]): RDD[(String, Short)] = {
+      val fuel: RDD[(String, Float)] = fuelPrice.map(p => p.split(",")).map(p => (s"${p(0)}-${p(1)}", p(2).toFloat))
+      self.map(f => (s"${f.date.year().get}-${f.date.monthOfYear().get}", f)).leftOuterJoin(fuel).map(f => (s"${f._2._1.origin}-${f._1}", f._2._1.distance * f._2._2.get))
+        .aggregateByKey(0f)(
+          (comb: Float, fuel) => comb + fuel,
+          (combAcc: Float, comb: Float) => combAcc + comb
+        ).combineByKey(
+          (fuel: Float) => fuel,
+          (comb: Float, fuel: Float) => if(fuel < comb) fuel else comb,
+          (combAcc: Float, comb: Float) => if(comb < combAcc) comb else combAcc
+        ).collect().foreach(println)
+      fuelPrice.map(p => p.split(",")).map(p => (s"${p(0)}-${p(1)}", 1.toShort))
+    }
+
 
 
     /**
