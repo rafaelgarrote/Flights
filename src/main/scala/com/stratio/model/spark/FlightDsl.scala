@@ -29,18 +29,17 @@ class FlightCsvReader(self: RDD[String]) {
      * Obtain the minimum fuel's consumption using a external RDD with the fuel price by Year, Month
      *
      */
-    def minFuelConsumptionByMonthAndAirport(fuelPrice: RDD[String]): RDD[(String, Short)] = {
-      val fuel: RDD[(String, Float)] = fuelPrice.map(p => p.split(",")).map(p => (s"${p(0)}-${p(1)}", p(2).toFloat))
-      self.map(f => (s"${f.date.year().get}-${f.date.monthOfYear().get}", f)).leftOuterJoin(fuel).map(f => (s"${f._2._1.origin}-${f._1}", f._2._1.distance * f._2._2.get))
-        .aggregateByKey(0f)(
+    def minFuelConsumptionByMonthAndAirport(fuelPrice: RDD[String]): RDD[(String, (Short, Short))] = {
+      val fuel = fuelPrice.map(p => p.split(",")).map(p => ((p(0).toShort, p(1).toShort), p(2).toFloat))
+      val flightFuel: RDD[((Short, Short), (Flight, Option[Float]))] = self.map(f => ((f.date.year().get.toShort, f.date.monthOfYear().get.toShort), f)).leftOuterJoin(fuel)
+      flightFuel.map(f => ((f._2._1.origin,f._1),f._2._1.distance * f._2._2.get)).aggregateByKey(0f)(
           (comb: Float, fuel) => comb + fuel,
           (combAcc: Float, comb: Float) => combAcc + comb
-        ).combineByKey(
-          (fuel: Float) => fuel,
-          (comb: Float, fuel: Float) => if(fuel < comb) fuel else comb,
-          (combAcc: Float, comb: Float) => if(comb < combAcc) comb else combAcc
-        ).collect().foreach(println)
-      fuelPrice.map(p => p.split(",")).map(p => (s"${p(0)}-${p(1)}", 1.toShort))
+        ).map(f => (f._1._1, (f._1._2, f._2))).combineByKey(
+          (airport: ((Short, Short), Float)) => airport,
+          (comb: ((Short, Short), Float), airport) => if(airport._2 < comb._2) airport else comb,
+          (combAcc: ((Short, Short), Float), comb: ((Short, Short), Float)) => if(comb._2 < combAcc._2) comb else combAcc
+        ).map(a => (a._1, a._2._1))
     }
 
 
