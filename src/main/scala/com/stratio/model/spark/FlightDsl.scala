@@ -20,9 +20,9 @@ class FlightCsvReader(self: RDD[String]) {
      *
      */
     def toErrors: RDD[(String, String)] = self.flatMap(l => Flight.extractErrors(l.split(",")).map((_,l)))
-  }
+}
 
-  class FlightFunctions(self: RDD[Flight]) {
+class FlightFunctions(self: RDD[Flight]) extends Serializable{
 
     /**
      *
@@ -90,9 +90,19 @@ class FlightCsvReader(self: RDD[String]) {
     *   flight5 = flightNumber=2, departureTime=1-1-2015 deparHour821 arrTime=855 orig=A dest=D
     */
 
-  def asignGhostFlights(elapsedSeconds: Int): RDD[Flight] = ???
-
+  def findNearestFlight(flight: Flight, elapsedSeconds: Int): Flight = {
+    println("---- " + flight.flightNum + " - " + elapsedSeconds)
+    println("---- " + self.count())
+    val nearestFlights = self.filter(f => f.flightNum == flight.flightNum && f.departureTime < elapsedSeconds)
+    if (nearestFlights.count() > 0) flight.copy(dest = nearestFlights.first().dest, arrTime = nearestFlights.first().departureTime, cRSArrTime = nearestFlights.first().crsDepatureTime, date = nearestFlights.first().date)
+    else flight
   }
+
+  def asignGhostFlights(elapsedSeconds: Int): RDD[Flight] = {
+    self.filter(f => f.arrTime == -1).map(f => findNearestFlight(f, f.departureTime + elapsedSeconds))
+  }
+
+}
 
 
 trait FlightDsl {
